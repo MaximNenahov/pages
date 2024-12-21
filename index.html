@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Арифметика с настройками</title>
+  <style>
+    /* Сброс базовых стилей и задний фон */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #f2f2f2;
+      transition: background-color 0.3s ease;
+    }
+
+    /****************************************
+     *  Общий контейнер и блоки
+     ****************************************/
+    .container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin: 20px auto;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+
+    /****************************************
+     *  Основная часть (задача + ответ)
+     ****************************************/
+    .main-panel {
+      width: 100%;
+      max-width: 450px; /* Сделаем пошире и покрупнее */
+      text-align: center;
+    }
+
+    .main-panel h1 {
+      margin-top: 0;
+      font-size: 40px; /* Крупнее заголовок */
+      margin-bottom: 25px;
+    }
+
+    .expression {
+      font-size: 56px; /* Крупнее выражение */
+      margin: 20px 0;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      font-size: 28px; /* Крупнее поле ввода */
+      padding: 10px;
+      box-sizing: border-box;
+      margin-bottom: 20px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    button {
+      font-size: 24px; /* Крупнее кнопки */
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      background-color: #ddd;
+    }
+
+    #generateBtn {
+      background-color: #3498db;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    #checkBtn {
+      background-color: #2ecc71;
+      color: #fff;
+    }
+
+    .result {
+      font-size: 24px;
+      margin-top: 20px;
+      min-height: 30px; /* чтобы место под текст было всегда */
+    }
+
+    /****************************************
+     *  Панель настроек
+     ****************************************/
+    /* Оборачиваем настройки в <details> для мобильного формата */
+    details.settings-accordion {
+      width: 100%;
+      max-width: 450px; /* чтобы совпадало по ширине с основной частью */
+      margin: 0 auto 20px;
+    }
+
+    /* Сам блок .settings-panel внутри details */
+    .settings-panel {
+      margin: 10px 0 0 0; /* отступ сверху, чтобы не прилегало к summary */
+    }
+
+    .settings-panel h2 {
+      margin-top: 0;
+      font-size: 28px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .range-block,
+    .checkbox-block,
+    .operations-block {
+      margin-bottom: 20px;
+    }
+
+    /* Блок выбора диапазона */
+    .range-block label {
+      display: inline-block;
+      width: 40px;
+      text-align: right;
+      margin-right: 5px;
+      font-size: 18px;
+    }
+    .range-block input {
+      width: 60px;
+      font-size: 18px;
+      padding: 5px;
+      box-sizing: border-box;
+      text-align: center;
+      margin-right: 10px;
+    }
+
+    /* Чекбокс запрета отрицательных */
+    .checkbox-block label {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    .checkbox-block input {
+      margin-right: 5px;
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+
+    /* Чекбоксы выбора операций */
+    .operations-block label {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    .operations-block input {
+      margin-right: 5px;
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+
+    /* Стили для summary (заголовка раскрывающегося блока) */
+    details.settings-accordion > summary {
+      font-size: 20px;
+      font-weight: bold;
+      list-style: none;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      margin-bottom: 10px;
+      user-select: none; /* чтобы не выделялся текст при клике */
+    }
+
+    details.settings-accordion[open] > summary {
+      /* Можно при открытии как-то выделить, например, другой цвет */
+      background-color: #e9ecef;
+    }
+
+    /****************************************
+     * Адаптация под «большие экраны» (десктоп)
+     ****************************************/
+    @media (min-width: 768px) {
+      /* В режиме большого экрана — основной блок и настройки сбоку.
+         Хотим, чтобы "панель настроек" была всегда открыта, 
+         а summary не отображался. */
+      .app-container {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 40px;
+      }
+
+      /* Отключаем «accordion-режим» и показываем панель в виде блока */
+      details.settings-accordion {
+        margin-left: 20px;
+        width: 300px;
+        max-width: none; /* снимаем ограничение */
+      }
+      details.settings-accordion[open] > summary {
+        display: none; /* скрываем summary на широком экране */
+      }
+
+      /* Сам блок настроек пусть будет блоком, без лишних отступов */
+      .settings-panel {
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Общий контейнер для десктопного вида -->
+  <div class="app-container">
+    
+    <!-- Основная часть (всегда видна) -->
+    <div class="main-panel container">
+      <h1>Арифметика</h1>
+      <!-- Кнопка генерации нового примера -->
+      <button id="generateBtn">Сгенерировать</button>
+      <!-- Отображение выражения -->
+      <div class="expression" id="expression">?</div>
+      <!-- Поле ввода ответа -->
+      <input type="number" id="userAnswer" placeholder="Ваш ответ" />
+      <!-- Кнопка проверки -->
+      <button id="checkBtn">Проверить</button>
+      <!-- Результат -->
+      <div class="result" id="result"></div>
+    </div>
+
+    <!-- Панель с настройками в "раскрывающемся" блоке <details> -->
+    <details class="settings-accordion" open>
+      <summary>Настройки</summary>
+      <div class="settings-panel container">
+
+        <h2>Настройки</h2>
+
+        <!-- Блок выбора диапазона -->
+        <div class="range-block">
+          <label for="minValue">Мин:</label>
+          <input type="number" id="minValue" value="1" />
+          <label for="maxValue">Макс:</label>
+          <input type="number" id="maxValue" value="9" />
+        </div>
+
+        <!-- Чекбокс запрета отрицательных ответов -->
+        <div class="checkbox-block">
+          <label>
+            <input type="checkbox" id="noNegative" />
+            Запретить отрицательные
+          </label>
+        </div>
+
+        <!-- Чекбоксы выбора операций -->
+        <div class="operations-block">
+          <label>
+            <input type="checkbox" id="opAdd" checked />
+            Сложение (+)
+          </label>
+          <label>
+            <input type="checkbox" id="opSub" />
+            Вычитание (–)
+          </label>
+          <label>
+            <input type="checkbox" id="opMul" />
+            Умножение (×)
+          </label>
+        </div>
+      </div>
+    </details>
+
+  </div><!-- .app-container -->
+
+  <script>
+    const generateBtn = document.getElementById('generateBtn');
+    const checkBtn = document.getElementById('checkBtn');
+    const expressionEl = document.getElementById('expression');
+    const userAnswerEl = document.getElementById('userAnswer');
+    const resultEl = document.getElementById('result');
+
+    // Элементы настроек
+    const minValueEl = document.getElementById('minValue');
+    const maxValueEl = document.getElementById('maxValue');
+    const noNegativeEl = document.getElementById('noNegative');
+    const opAddEl = document.getElementById('opAdd');
+    const opSubEl = document.getElementById('opSub');
+    const opMulEl = document.getElementById('opMul');
+
+    let correctAnswer = null;
+
+    // Функция генерации нового выражения
+    function generateExpression() {
+      // Сброс фона и результата
+      document.body.style.backgroundColor = '#f2f2f2';
+      resultEl.textContent = '';
+      userAnswerEl.value = '';
+
+      // Считываем настройки диапазона
+      const min = parseInt(minValueEl.value, 10);
+      const max = parseInt(maxValueEl.value, 10);
+
+      // Считываем, какие операции выбраны
+      let availableOps = [];
+      if (opAddEl.checked) availableOps.push('+');
+      if (opSubEl.checked) availableOps.push('-');
+      if (opMulEl.checked) availableOps.push('*');
+
+      // Если ни одна операция не выбрана
+      if (availableOps.length === 0) {
+        alert('Выберите хотя бы одну операцию!');
+        return;
+      }
+
+      // Генерируем случайные числа с учётом диапазона
+      let a = Math.floor(Math.random() * (max - min + 1)) + min;
+      let b = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      // Случайно выбираем операцию
+      const operation = availableOps[Math.floor(Math.random() * availableOps.length)];
+
+      // Если установлен чекбокс "Запретить отрицательные"
+      // и операция вычитания, делаем результат неотрицательным (переставляем)
+      if (operation === '-' && noNegativeEl.checked && a < b) {
+        [a, b] = [b, a];
+      }
+
+      // Вычисляем правильный ответ
+      switch (operation) {
+        case '+':
+          correctAnswer = a + b;
+          break;
+        case '-':
+          correctAnswer = a - b;
+          break;
+        case '*':
+          correctAnswer = a * b;
+          break;
+      }
+
+      // Отображаем пример
+      expressionEl.textContent = `${a} ${operation} ${b} = ?`;
+    }
+
+    // Функция проверки ответа
+    function checkAnswer() {
+      const userInput = userAnswerEl.value.trim();
+
+      // Проверяем, что пользователь ввёл что-то и это число
+      if (userInput === '' || isNaN(userInput)) {
+        alert('Пожалуйста, введите число!');
+        return;
+      }
+
+      const userNumber = parseInt(userInput, 10);
+
+      if (userNumber === correctAnswer) {
+        // Правильно
+        document.body.style.backgroundColor = 'lightgreen';
+        resultEl.textContent = 'Правильно!';
+      } else {
+        // Неправильно
+        document.body.style.backgroundColor = 'lightcoral';
+        resultEl.textContent = `Неправильно! Правильный ответ: ${correctAnswer}`;
+      }
+    }
+
+    // Обработчики кнопок
+    generateBtn.addEventListener('click', generateExpression);
+    checkBtn.addEventListener('click', checkAnswer);
+  </script>
+</body>
+</html>
